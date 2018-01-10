@@ -1,0 +1,10 @@
+Thomas Landi - COPADS - Project 1
+
+1. It does not always run faster, as there is an overhead with thread creation, and if the directory
+structure does not benefit from being ran in parallel (a straight 'line' of subdirectories, for instance)
+than the parallel version will run slower.
+
+2. In my case, it was not faster.
+
+3. The only thing I added special was a shared resource for keeping track of the total count of files,
+folders, and size in bytes. The rest of the structure was very similar.

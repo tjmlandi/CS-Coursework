@@ -1,0 +1,872 @@
+   1 0000               # File:		life_age.asm
+   2 0000               # Author:	Thomas Landi
+   3 0000               # Section:	02
+   4 0000               # Description:	This program takes user input to create an instance
+   5 0000               #		of Conway's Game of Life with Age and run it for 
+   6 0000               #		the user defined amount of generations
+   7 0000               
+   8 0000               
+   9 0000               
+  10 0000               #syscall codes
+  11 0000               PRINT_INT = 	1
+  12 0000               PRINT_STRING = 	4
+  13 0000               READ_INT = 	5
+  14 0000               EXIT = 		10
+  15 0000               PRINT_CHAR = 	11
+  16 0000               
+  17 0000               #board pieces
+  18 0000               CORNER = 	43
+  19 0000               HORIZONTAL = 	45
+  20 0000               VERTICAL = 	124
+  21 0000               DEAD = 		32
+  22 0000               
+  23 0000               	.data
+  24 0000               	.align 2
+  25 0000               
+  26 0000               board_size:
+  27 0000 00000000		.space 4
+  28 0004               
+  29 0004               generations:
+  30 0004 00000000		.space 4
+  31 0008               
+  32 0008               live_cells:
+  33 0008 00000000		.space 4
+  34 000c               
+  35 000c               board:
+  36 000c 00000000		.space 30*30*4
+          00000000
+          00000000
+          00000000
+          00000000
+          00000000
+  37 0e1c               
+  38 0e1c               board_b:
+  39 0e1c 00000000		.space 30*30*4
+          00000000
+          00000000
+          00000000
+          00000000
+          00000000
+  40 1c2c               
+  41 1c2c               	.align 0
+  42 1c2c               
+  43 1c2c               
+  44 1c2c               banner:
+  45 1c2c 0A2A2A2A		.asciiz "\n*************************************\n****    Game of Life with Age    ****\n*************************************"
+          2A2A2A2A
+          2A2A2A2A
+          2A2A2A2A
+          2A2A2A2A
+          2A2A2A2A
+  46 1c9f               	#
+  47 1c9f               	#Prompts for input
+  48 1c9f               	#
+  49 1c9f               
+  50 1c9f               prompt_board_size:
+  51 1c9f 0A0A456E		.asciiz "\n\nEnter board size: "
+          74657220
+          626F6172
+          64207369
+          7A653A20
+          00      
+  52 1cb4               
+  53 1cb4               prompt_num_gen:
+  54 1cb4 0A456E74		.asciiz "\nEnter number of generations to run: "
+          6572206E
+          756D6265
+          72206F66
+          2067656E
+          65726174
+  55 1cda               
+  56 1cda               prompt_live_cells:
+  57 1cda 0A456E74		.asciiz "\nEnter number of live cells: "
+          6572206E
+          756D6265
+          72206F66
+          206C6976
+          65206365
+  58 1cf8               
+  59 1cf8               prompt_start_loc:
+  60 1cf8 0A537461		.asciiz "\nStart entering locations\n"
+          72742065
+          6E746572
+          696E6720
+          6C6F6361
+          74696F6E
+  61 1d13               
+  62 1d13               
+  63 1d13               
+  64 1d13               	#
+  65 1d13               	#Error messages
+  66 1d13               	#
+  67 1d13               	
+  68 1d13               illegal_size:
+  69 1d13 0A574152		.asciiz "\nWARNING: illegal board size, try again: "
+          4E494E47
+          3A20696C
+          6C656761
+          6C20626F
+          61726420
+  70 1d3d               
+  71 1d3d               illegal_generations:
+  72 1d3d 0A574152		.asciiz "\nWARNING: illegal number of generations, try again: "
+          4E494E47
+          3A20696C
+          6C656761
+          6C206E75
+          6D626572
+  73 1d72               
+  74 1d72               illegal_cells:
+  75 1d72 0A574152		.asciiz "\nWARNING: illegal number of live cells, try again: "
+          4E494E47
+          3A20696C
+          6C656761
+          6C206E75
+          6D626572
+  76 1da6               
+  77 1da6               illegal_loc:
+  78 1da6 0A455252		.asciiz "\nERROR: illegal point location\n"
+          4F523A20
+          696C6C65
+          67616C20
+          706F696E
+          74206C6F
+  79 1dc6               
+  80 1dc6               	#
+  81 1dc6               	#Generational Gap
+  82 1dc6               	#
+  83 1dc6               
+  84 1dc6               first_piece:
+  85 1dc6 0A3D3D3D		.asciiz "\n====    GENERATION "
+          3D202020
+          2047454E
+          45524154
+          494F4E20
+          00      
+  86 1ddb               
+  87 1ddb               second_piece:
+  88 1ddb 20202020		.asciiz "    ====\n"
+          3D3D3D3D
+          0A00    
+  89 1de5               
+  90 1de5               newline:
+  91 1de5 0A00    		.asciiz "\n"
+  92 1de7               
+  93 0000               	.text
+  94 0000               	.align 2
+  95 0000               	.globl main
+  96 0000               main:
+  97 0000 23BDFFDC		addi	$sp, $sp, -36			#Setting up the stack frame
+  98 0004 AFBF0000		sw 	$ra, 0($sp)
+  99 0008 AFB00004		sw 	$s0, 4($sp)
+ 100 000c AFB10008		sw	$s1, 8($sp)
+ 101 0010 AFB2000C		sw	$s2, 12($sp)
+ 102 0014 AFB30010		sw	$s3, 16($sp)
+ 103 0018 AFB40014		sw	$s4, 20($sp)
+ 104 001c AFB50018		sw	$s5, 24($sp)
+ 105 0020 AFB6001C		sw	$s6, 28($sp)
+ 106 0024 AFB70020		sw	$s7, 32($sp)
+ 107 0028               
+ 108 0028 34020004		li	$v0, PRINT_STRING		#Printing the banner
+ 109 002c 3C040000		la	$a0, banner
+     0030 34840000
+ 110 0034 0000000C		syscall
+ 111 0038               
+ 112 0038               
+ 113 0038               	#
+ 114 0038               	#Get the Board Size
+ 115 0038               	#
+ 116 0038               
+ 117 0038 34020004		li	$v0, PRINT_STRING		#Print the prompt for the board size
+ 118 003c 3C040000		la	$a0, prompt_board_size
+     0040 34840000
+ 119 0044 0000000C		syscall
+ 120 0048               
+ 121 0048               read_size:
+ 122 0048 34020005		li	$v0, READ_INT			#Read in the user's board size
+ 123 004c 0000000C		syscall
+ 124 0050 00408021		move	$s0, $v0
+ 125 0054 00004021		move	$t0, $zero
+ 126 0058 2A080004		slti	$t0, $s0, 4
+ 127 005c 34090001		li	$t1, 1				
+ 128 0060 11090003		beq	$t0, $t1, size_failure
+ 129 0064 2A08001F		slti	$t0, $s0, 31
+ 130 0068 11000001		beq	$t0, $zero, size_failure
+ 131 006c 08000021		j	size_success
+ 132 0070               size_failure:					#If the board size is invalid, ask them to try again
+ 133 0070 34020004		li	$v0, PRINT_STRING
+ 134 0074 3C040000		la	$a0, illegal_size
+     0078 34840000
+ 135 007c 0000000C		syscall
+ 136 0080 08000012		j	read_size
+ 137 0084               size_success:					#IF the board size is valid, save it in memory
+ 138 0084 3C080000		la	$t0, board_size
+     0088 35080000
+ 139 008c AD100000		sw	$s0, 0($t0)
+ 140 0090               	
+ 141 0090               						#
+ 142 0090               						#Get the Number of Generations
+ 143 0090               						#
+ 144 0090 34020004		li	$v0, PRINT_STRING		#Print the prompt for the generations
+ 145 0094 3C040000		la	$a0, prompt_num_gen
+     0098 34840000
+ 146 009c 0000000C		syscall
+ 147 00a0               
+ 148 00a0               read_generations:
+ 149 00a0 34020005		li	$v0, READ_INT			#Read the user's generation number
+ 150 00a4 0000000C		syscall
+ 151 00a8 00408021		move	$s0, $v0
+ 152 00ac 00004021		move	$t0, $zero
+ 153 00b0 0200402A		slt	$t0, $s0, $zero
+ 154 00b4 34090001		li	$t1, 1
+ 155 00b8 11090003		beq	$t0, $t1, gen_failure
+ 156 00bc 2A080015		slti	$t0, $s0, 21
+ 157 00c0 11000001		beq	$t0, $zero, gen_failure
+ 158 00c4 08000037		j	gen_success
+ 159 00c8               gen_failure:					#If the generation number is invalid, ask them to try again
+ 160 00c8 34020004		li	$v0, PRINT_STRING
+ 161 00cc 3C040000		la	$a0, illegal_generations
+     00d0 34840000
+ 162 00d4 0000000C		syscall
+ 163 00d8 08000028		j	read_generations
+ 164 00dc               gen_success:					#If the generation number is valid, save it in memory
+ 165 00dc 3C080000		la	$t0, generations
+     00e0 35080000
+ 166 00e4 AD100000		sw	$s0, 0($t0)
+ 167 00e8               
+ 168 00e8               
+ 169 00e8               						#
+ 170 00e8               						#Get the number of live cells to start
+ 171 00e8               						#
+ 172 00e8 34020004		li	$v0, PRINT_STRING		#Print the prompt for the live cells
+ 173 00ec 3C040000		la	$a0, prompt_live_cells
+     00f0 34840000
+ 174 00f4 0000000C		syscall
+ 175 00f8               
+ 176 00f8               read_cells:
+ 177 00f8 34020005		li	$v0, READ_INT			#Read the user's number of live cells
+ 178 00fc 0000000C		syscall
+ 179 0100 00408021		move	$s0, $v0
+ 180 0104 00004021		move	$t0, $zero
+ 181 0108 0200402A		slt	$t0, $s0, $zero
+ 182 010c 34090001		li	$t1, 1
+ 183 0110 11090009		beq	$t0, $t1, cells_failure	
+ 184 0114 3C110000		la	$s1, board_size
+     0118 36310000
+ 185 011c 8E310000		lw	$s1, 0($s1)
+ 186 0120 02310018		mul	$s1, $s1, $s1
+     0124 00008812
+ 187 0128 22310001		addi	$s1, $s1, 1
+ 188 012c 0211402A		slt	$t0, $s0, $s1
+ 189 0130 11000001		beq	$t0, $zero, cells_failure
+ 190 0134 08000053		j	cells_success
+ 191 0138               cells_failure:					#If the number of live cells is invalid, ask them to try again
+ 192 0138 34020004		li	$v0, PRINT_STRING
+ 193 013c 3C040000		la	$a0, illegal_cells
+     0140 34840000
+ 194 0144 0000000C		syscall
+ 195 0148 0800003E		j	read_cells
+ 196 014c               cells_success:					#If the number of live cells is valif, save it in memory
+ 197 014c 3C080000		la	$t0, live_cells
+     0150 35080000
+ 198 0154 AD100000		sw	$s0, 0($t0)
+ 199 0158               
+ 200 0158               
+ 201 0158               						#
+ 202 0158               						#Get the locations of the live cells
+ 203 0158               						#
+ 204 0158 34020004		li	$v0, PRINT_STRING		#Print the prompt for the locations
+ 205 015c 3C040000		la	$a0, prompt_start_loc
+     0160 34840000
+ 206 0164 0000000C		syscall
+ 207 0168               	
+ 208 0168               read_loc:
+ 209 0168 3C100000		la	$s0, board_size			#Read the board size and number of live cells
+     016c 36100000
+ 210 0170 8E100000		lw	$s0, 0($s0)			#from memory
+ 211 0174 3C110000		la	$s1, live_cells
+     0178 36310000
+ 212 017c 8E310000		lw	$s1, 0($s1)
+ 213 0180               read_loop:
+ 214 0180 12200027		beq	$s1, $zero, read_end		#Loop as many times as there are live cells
+ 215 0184 34020005		li	$v0, READ_INT			#Read in the row number 
+ 216 0188 0000000C		syscall
+ 217 018c 00409021		move	$s2, $v0			#Read in the column number
+ 218 0190 34020005		li	$v0, READ_INT
+ 219 0194 0000000C		syscall
+ 220 0198 00409821		move	$s3, $v0
+ 221 019c 224A0001		addi	$t2, $s2, 1
+ 222 01a0 226B0001		addi	$t3, $s3, 1
+ 223 01a4 000A402A		slt	$t0, $zero, $t2			#Make sure the row and column
+ 224 01a8 11000017		beq	$t0, $zero, loc_failure		#are within the bounds of the board
+ 225 01ac 000B402A		slt	$t0, $zero, $t3			 
+ 226 01b0 11000015		beq	$t0, $zero, loc_failure		
+ 227 01b4 0250402A		slt	$t0, $s2, $s0
+ 228 01b8 11000013		beq	$t0, $zero, loc_failure
+ 229 01bc 0270402A		slt	$t0, $s3, $s0
+ 230 01c0 11000011		beq	$t0, $zero, loc_failure
+ 231 01c4 3C140000		la	$s4, board			#Get a pointer to the board
+     01c8 36940000
+ 232 01cc 02500018		mul	$s2, $s2, $s0			#and use the row and column numbers
+     01d0 00009012
+ 233 01d4 34080004		li	$t0, 4				#to move it to the correct location
+ 234 01d8 02480018		mul	$s2, $s2, $t0			#in memory
+     01dc 00009012
+ 235 01e0 02680018		mul	$s3, $s3, $t0
+     01e4 00009812
+ 236 01e8 0292A020		add	$s4, $s4, $s2
+ 237 01ec 0293A020		add	$s4, $s4, $s3
+ 238 01f0 34080041		li	$t0, 65
+ 239 01f4 8E890000		lw	$t1, 0($s4)
+ 240 01f8 11090003		beq	$t0, $t1, loc_failure		#Make sure a cell doesn't already live at that loc
+ 241 01fc AE880000		sw	$t0, 0($s4)			#Save the cell to that location in memory
+ 242 0200 2231FFFF		addi	$s1, $s1, -1
+ 243 0204 08000060		j	read_loop
+ 244 0208               loc_failure:					#Upon failure, print the error message
+ 245 0208 34020004		li	$v0, PRINT_STRING		#and exit the program
+ 246 020c 3C040000		la	$a0, illegal_loc
+     0210 34840000
+ 247 0214 0000000C		syscall
+ 248 0218 3402000A		li	$v0, EXIT
+ 249 021c 0000000C		syscall
+ 250 0220               read_end:
+ 251 0220 34040000		li 	$a0, 0
+ 252 0224 34050000		li	$a1, 0
+ 253 0228 0C0000A3		jal	draw_board
+ 254 022c 3C100000		la	$s0, generations
+     0230 36100000
+ 255 0234 8E100000		lw	$s0, 0($s0)
+ 256 0238 34040001		li	$a0, 1 
+ 257 023c 34050001		li	$a1, 1
+ 258 0240               main_loop:					#Loop through the number of generations
+ 259 0240 0C000111		jal	process_generation		#Process and draw the board at each iteration
+ 260 0244 0C0000A3		jal	draw_board
+ 261 0248 2210FFFF		addi	$s0, $s0, -1
+ 262 024c 20840001		addi	$a0, $a0, 1
+ 263 0250 34080001		li	$t0, 1
+ 264 0254 00A82826		xor	$a1, $a1, $t0
+ 265 0258 12000001		beq	$s0, $zero, main_end
+ 266 025c 08000090		j	main_loop
+ 267 0260               main_end:
+ 268 0260               
+ 269 0260               main_done:					#Move the stack frame back 
+ 270 0260 8FBF0000		lw	$ra, 0($sp)			#and restore the saved registers
+ 271 0264 8FB00004		lw	$s0, 4($sp)
+ 272 0268 8FB10008		lw	$s1, 8($sp)
+ 273 026c 8FB2000C		lw	$s2, 12($sp)
+ 274 0270 8FB30010		lw	$s3, 16($sp)
+ 275 0274 8FB40014		lw	$s4, 20($sp)
+ 276 0278 8FB50018		lw	$s5, 24($sp)
+ 277 027c 8FB6001C		lw	$s6, 28($sp)
+ 278 0280 8FB70020		lw	$s7, 32($sp)
+ 279 0284 23BD0024		addi	$sp, $sp, 36
+ 280 0288 03E00008		jr	$ra	
+ 281 028c               
+ 282 028c               #
+ 283 028c               #Draw Board Function
+ 284 028c               #
+ 285 028c               # a0- Generation Number
+ 286 028c               #
+ 287 028c               # a1- If 0, draw board A. If 1, draw board B.
+ 288 028c               #
+ 289 028c               # This function draws the board and generation header 
+ 290 028c               #
+ 291 028c               draw_board:
+ 292 028c 23BDFFD4		addi	$sp, $sp, -44			#Move the stack frame
+ 293 0290 AFBF0000		sw	$ra, 0($sp)
+ 294 0294 AFB00004		sw	$s0, 4($sp)
+ 295 0298 AFB10008		sw	$s1, 8($sp)
+ 296 029c AFB2000C		sw	$s2, 12($sp)
+ 297 02a0 AFB30010		sw	$s3, 16($sp)
+ 298 02a4 AFB40014		sw	$s4, 20($sp)
+ 299 02a8 AFB50018		sw	$s5, 24($sp)
+ 300 02ac AFB6001C		sw	$s6, 28($sp)
+ 301 02b0 AFB70020		sw	$s7, 32($sp)
+ 302 02b4 AFA40024		sw	$a0, 36($sp)
+ 303 02b8 AFA50028		sw	$a1, 40($sp)
+ 304 02bc               
+ 305 02bc 3C110000		la	$s1, board_size			#Load the board size
+     02c0 36310000
+ 306 02c4 8E310000		lw	$s1, 0($s1)	
+ 307 02c8               
+ 308 02c8 00808021		move	$s0, $a0			#Save the parameters
+ 309 02cc 00A0B821		move	$s7, $a1
+ 310 02d0               
+ 311 02d0               
+ 312 02d0 3C040000		la	$a0, first_piece		#Draw the generation header
+     02d4 34840000
+ 313 02d8 34020004		li	$v0, PRINT_STRING
+ 314 02dc 0000000C		syscall
+ 315 02e0 02002021		move	$a0, $s0
+ 316 02e4 34020001		li	$v0, PRINT_INT
+ 317 02e8 0000000C		syscall
+ 318 02ec 3C040000		la	$a0, second_piece
+     02f0 34840000
+ 319 02f4 34020004		li	$v0, PRINT_STRING
+ 320 02f8 0000000C		syscall
+ 321 02fc               
+ 322 02fc               
+ 323 02fc               						
+ 324 02fc 3404002B		li	$a0, CORNER			#Draw the top of the board
+ 325 0300 3402000B		li	$v0, PRINT_CHAR
+ 326 0304 0000000C		syscall
+ 327 0308               
+ 328 0308 00009021		move	$s2, $zero
+ 329 030c 3404002D		li	$a0, HORIZONTAL
+ 330 0310 3402000B		li	$v0, PRINT_CHAR
+ 331 0314               top_loop:
+ 332 0314 12510003		beq	$s2, $s1, top_end
+ 333 0318 0000000C		syscall
+ 334 031c 22520001		addi	$s2, $s2, 1
+ 335 0320 080000C5		j	top_loop
+ 336 0324               top_end:
+ 337 0324 3404002B		li	$a0, CORNER
+ 338 0328 0000000C		syscall
+ 339 032c 3C040000		la	$a0, newline
+     0330 34840000
+ 340 0334 34020004		li	$v0, PRINT_STRING
+ 341 0338 0000000C		syscall
+ 342 033c               
+ 343 033c               
+ 344 033c               
+ 345 033c 12E00003		beq	$s7, $zero, A			#Load the board pointer
+ 346 0340 3C130000		la	$s3, board_b
+     0344 36730000
+ 347 0348 080000D5		j	next
+ 348 034c               A:
+ 349 034c 3C130000		la	$s3, board
+     0350 36730000
+ 350 0354               next:
+ 351 0354 00009021		move	$s2, $zero
+ 352 0358 0000A021		move	$s4, $zero
+ 353 035c               
+ 354 035c               
+ 355 035c               
+ 356 035c               middle_loop:					#Loop through the rows of the board
+ 357 035c 1291001C		beq	$s4, $s1, middle_end
+ 358 0360 3404007C		li	$a0, VERTICAL			#Print the first line
+ 359 0364 3402000B		li	$v0, PRINT_CHAR
+ 360 0368 0000000C		syscall
+ 361 036c               middle_inner_loop:				#Loop through the columns in that row of the board
+ 362 036c 1251000E		beq	$s2, $s1, middle_inner_end
+ 363 0370 8E750000		lw	$s5, 0($s3)			#Load the cell
+ 364 0374 12A00006		beq	$s5, $zero, dead_cell		#If it's dead, print a space
+ 365 0378 02A02021		move	$a0, $s5
+ 366 037c 3402000B		li	$v0, PRINT_CHAR			#Else, print the letter representing its age
+ 367 0380 0000000C		syscall
+ 368 0384 22520001		addi	$s2, $s2, 1			#Move the pointer to the next cell
+ 369 0388 22730004		addi	$s3, $s3, 4
+ 370 038c 080000DB		j	middle_inner_loop
+ 371 0390               dead_cell:
+ 372 0390 34040020		li	$a0, DEAD
+ 373 0394 3402000B		li	$v0, PRINT_CHAR
+ 374 0398 0000000C		syscall
+ 375 039c 22520001		addi 	$s2, $s2, 1
+ 376 03a0 22730004		addi	$s3, $s3, 4
+ 377 03a4 080000DB		j	middle_inner_loop
+ 378 03a8               middle_inner_end:
+ 379 03a8 3404007C		li	$a0, VERTICAL			#Print the last line in the row
+ 380 03ac 3402000B		li	$v0, PRINT_CHAR
+ 381 03b0 0000000C		syscall
+ 382 03b4 3C040000		la	$a0, newline			#Print a new line
+     03b8 34840000
+ 383 03bc 34020004		li	$v0, PRINT_STRING
+ 384 03c0 0000000C		syscall
+ 385 03c4 00009021		move	$s2, $zero			#Increment the counters for the loops
+ 386 03c8 22940001		addi	$s4, $s4, 1
+ 387 03cc 080000D7		j	middle_loop
+ 388 03d0               middle_end:
+ 389 03d0               
+ 390 03d0               
+ 391 03d0 3404002B		li	$a0, CORNER			#Print the bottom line of the board
+ 392 03d4 3402000B		li	$v0, PRINT_CHAR
+ 393 03d8 0000000C		syscall
+ 394 03dc               
+ 395 03dc 00009021		move	$s2, $zero
+ 396 03e0 3404002D		li	$a0, HORIZONTAL
+ 397 03e4 3402000B		li	$v0, PRINT_CHAR
+ 398 03e8               bot_loop:
+ 399 03e8 12510003		beq	$s2, $s1, bot_end
+ 400 03ec 0000000C		syscall
+ 401 03f0 22520001		addi	$s2, $s2, 1
+ 402 03f4 080000FA		j	bot_loop
+ 403 03f8               bot_end:
+ 404 03f8 3404002B		li	$a0, CORNER
+ 405 03fc 0000000C		syscall
+ 406 0400 3C040000		la	$a0, newline
+     0404 34840000
+ 407 0408 34020004		li	$v0, PRINT_STRING
+ 408 040c 0000000C		syscall
+ 409 0410               
+ 410 0410 8FBF0000		lw	$ra, 0($sp)			#Move the stack pointers back
+ 411 0414 8FB00004		lw	$s0, 4($sp)
+ 412 0418 8FB10008		lw	$s1, 8($sp)
+ 413 041c 8FB2000C		lw	$s2, 12($sp)
+ 414 0420 8FB30010		lw	$s3, 16($sp)
+ 415 0424 8FB40014		lw	$s4, 20($sp)
+ 416 0428 8FB50018		lw	$s5, 24($sp)
+ 417 042c 8FB6001C		lw	$s6, 28($sp)
+ 418 0430 8FB70020		lw	$s7, 32($sp)
+ 419 0434 8FA40024		lw	$a0, 36($sp)
+ 420 0438 8FA50028		lw	$a1, 40($sp)
+ 421 043c 23BD002C		addi	$sp, $sp, 44
+ 422 0440 03E00008		jr	$ra	
+ 423 0444               
+ 424 0444               #
+ 425 0444               #Process Generation Function
+ 426 0444               #
+ 427 0444               # a1- determines which board is being written to, and which is being read from
+ 428 0444               #
+ 429 0444               #
+ 430 0444               # The function will read from one board, and determine the next state of each
+ 431 0444               # cell and write it to the next board
+ 432 0444               #
+ 433 0444               process_generation:
+ 434 0444 23BDFFD8		addi	$sp, $sp, -40			#Move the stack frame
+ 435 0448 AFBF0000		sw	$ra, 0($sp)
+ 436 044c AFB00004		sw	$s0, 4($sp)
+ 437 0450 AFB10008		sw	$s1, 8($sp)
+ 438 0454 AFB2000C		sw	$s2, 12($sp)
+ 439 0458 AFB30010		sw	$s3, 16($sp)
+ 440 045c AFB40014		sw	$s4, 20($sp)
+ 441 0460 AFB50018		sw	$s5, 24($sp)
+ 442 0464 AFB6001C		sw	$s6, 28($sp)
+ 443 0468 AFB70020		sw	$s7, 32($sp)
+ 444 046c AFA50024		sw	$a1, 36($sp)
+ 445 0470               
+ 446 0470 3C100000		la	$s0, board_size
+     0474 36100000
+ 447 0478 8E140000		lw	$s4, 0($s0)
+ 448 047c 34110000		li	$s1, 0
+ 449 0480 34100000		li	$s0, 0
+ 450 0484 34150000		li	$s5, 0
+ 451 0488 10A00005		beq	$a1, $zero, process_a			#Use the param to determin
+ 452 048c 3C130000		la	$s3, board_b				#which board is being read from
+     0490 36730000
+ 453 0494 3C120000		la	$s2, board				#and which is being written to
+     0498 36520000
+ 454 049c 0800012C		j	after_load
+ 455 04a0               process_a:
+ 456 04a0 3C130000		la	$s3, board
+     04a4 36730000
+ 457 04a8 3C120000		la	$s2, board_b
+     04ac 36520000
+ 458 04b0               after_load:
+ 459 04b0               		
+ 460 04b0               process_loop:						#Loop through the columns
+ 461 04b0 1214007C		beq	$s0, $s4, process_loop_end
+ 462 04b4               process_inner_loop:					#Loop through the rows
+ 463 04b4 12340078		beq	$s1, $s4, process_inner_loop_end
+ 464 04b8 34080004		li	$t0, 4
+ 465 04bc 02880018		mul	$s7, $s4, $t0
+     04c0 0000B812
+ 466 04c4               
+ 467 04c4               							#In each of the next sections 
+ 468 04c4               							#from Top Left to Bottom Right
+ 469 04c4               							#the neighbors of the cell currently be examined will be checked
+ 470 04c4               							#and if there is a cell inhabiting the space, one is added to the 
+ 471 04c4               							#running tally of neighbors
+ 472 04c4               	
+ 473 04c4               							#Top Left
+ 474 04c4 0248B022		sub	$s6, $s2, $t0
+ 475 04c8 02D7B022		sub	$s6, $s6, $s7
+ 476 04cc 12000001		beq	$s0, $zero, tl_top
+ 477 04d0 08000138		j	tl_post_top	
+ 478 04d4               tl_top:
+ 479 04d4 02F40018		mul	$t1, $s7, $s4
+     04d8 00004812
+ 480 04dc 02C9B020		add	$s6, $s6, $t1
+ 481 04e0               tl_post_top:	
+ 482 04e0 12200001		beq	$s1, $zero, tl_left
+ 483 04e4 0800013B		j	tl_post_left
+ 484 04e8               tl_left:
+ 485 04e8 02D7B020		add	$s6, $s6, $s7
+ 486 04ec               tl_post_left:
+ 487 04ec 8ECA0000		lw	$t2, 0($s6)
+ 488 04f0 11400001		beq	$t2, $zero, tl_no_cell
+ 489 04f4 22B50001		addi	$s5, 1
+ 490 04f8               tl_no_cell:
+ 491 04f8               
+ 492 04f8               
+ 493 04f8               							#Top
+ 494 04f8 0257B022		sub	$s6, $s2, $s7
+ 495 04fc 12000001		beq	$s0, $zero, t_top
+ 496 0500 08000144		j	t_post_top
+ 497 0504               t_top:
+ 498 0504 02F40018		mul	$t1, $s7, $s4
+     0508 00004812
+ 499 050c 02C9B020		add	$s6, $s6, $t1
+ 500 0510               t_post_top:
+ 501 0510 8ECA0000		lw	$t2, 0($s6)
+ 502 0514 11400001		beq	$t2, $zero, t_no_cell
+ 503 0518 22B50001		addi	$s5, 1
+ 504 051c               t_no_cell:
+ 505 051c               
+ 506 051c               	
+ 507 051c               							#Top Right
+ 508 051c 0248B020		add	$s6, $s2, $t0
+ 509 0520 02D7B022		sub	$s6, $s6, $s7
+ 510 0524 12000001		beq	$s0, $zero, tr_top
+ 511 0528 0800014E		j	tr_post_top
+ 512 052c               tr_top:
+ 513 052c 02F40018		mul	$t1, $s7, $s4
+     0530 00004812
+ 514 0534 02C9B020		add	$s6, $s6, $t1
+ 515 0538               tr_post_top:
+ 516 0538 228FFFFF		addi	$t7, $s4, -1	
+ 517 053c 122F0001		beq	$s1, $t7, tr_right
+ 518 0540 08000152		j	tr_post_right
+ 519 0544               tr_right:
+ 520 0544 02D7B022		sub	$s6, $s6, $s7
+ 521 0548               tr_post_right:
+ 522 0548 8ECA0000		lw	$t2, 0($s6)
+ 523 054c 11400001		beq	$t2, $zero, tr_no_cell
+ 524 0550 22B50001		addi	$s5, 1
+ 525 0554               tr_no_cell:
+ 526 0554               
+ 527 0554               
+ 528 0554               							#Left
+ 529 0554 0248B022		sub	$s6, $s2, $t0	
+ 530 0558 12200001		beq	$s1, $zero, l_left
+ 531 055c 08000159		j	l_post_left
+ 532 0560               l_left:
+ 533 0560 02D7B020		add	$s6, $s6, $s7
+ 534 0564               l_post_left:
+ 535 0564 8ECA0000		lw	$t2, 0($s6)
+ 536 0568 11400001		beq	$t2, $zero, l_no_cell
+ 537 056c 22B50001		addi	$s5, 1
+ 538 0570               l_no_cell:
+ 539 0570               
+ 540 0570               	
+ 541 0570               							#Right
+ 542 0570 0248B020		add	$s6, $s2, $t0
+ 543 0574 228FFFFF		addi	$t7, $s4, -1	
+ 544 0578 122F0001		beq	$s1, $t7, r_right
+ 545 057c 08000161		j	r_post_right
+ 546 0580               r_right:
+ 547 0580 02D7B022		sub	$s6, $s6, $s7
+ 548 0584               r_post_right:
+ 549 0584 8ECA0000		lw	$t2, 0($s6)
+ 550 0588 11400001		beq	$t2, $zero, r_no_cell
+ 551 058c 22B50001		addi	$s5, 1
+ 552 0590               r_no_cell:
+ 553 0590               
+ 554 0590               
+ 555 0590               							#Bottom Left
+ 556 0590 0248B022		sub	$s6, $s2, $t0
+ 557 0594 02D7B020		add	$s6, $s6, $s7
+ 558 0598 228FFFFF		addi	$t7, $s4, -1
+ 559 059c 120F0001		beq	$s0, $t7, bl_bot
+ 560 05a0 0800016C		j	bl_post_bot
+ 561 05a4               bl_bot:
+ 562 05a4 02F40018		mul	$t1, $s7, $s4
+     05a8 00004812
+ 563 05ac 02C9B022		sub	$s6, $s6, $t1
+ 564 05b0               bl_post_bot:	
+ 565 05b0 12200001		beq	$s1, $zero, bl_left
+ 566 05b4 0800016F		j	bl_post_left
+ 567 05b8               bl_left:
+ 568 05b8 02D7B020		add	$s6, $s6, $s7
+ 569 05bc               bl_post_left:
+ 570 05bc 8ECA0000		lw	$t2, 0($s6)
+ 571 05c0 11400001		beq	$t2, $zero, bl_no_cell
+ 572 05c4 22B50001		addi	$s5, 1
+ 573 05c8               bl_no_cell:
+ 574 05c8               
+ 575 05c8               	
+ 576 05c8               							#Bottom
+ 577 05c8 0257B020		add	$s6, $s2, $s7
+ 578 05cc 228FFFFF		addi	$t7, $s4, -1
+ 579 05d0 120F0001		beq	$s0, $t7, b_bot
+ 580 05d4 08000179		j	b_post_bot
+ 581 05d8               b_bot:
+ 582 05d8 02F40018		mul	$t1, $s7, $s4
+     05dc 00004812
+ 583 05e0 02C9B022		sub	$s6, $s6, $t1
+ 584 05e4               b_post_bot:	
+ 585 05e4 8ECA0000		lw	$t2, 0($s6)
+ 586 05e8 11400001		beq	$t2, $zero, b_no_cell
+ 587 05ec 22B50001		addi	$s5, 1
+ 588 05f0               b_no_cell:
+ 589 05f0               
+ 590 05f0               
+ 591 05f0               							#Bottom Right
+ 592 05f0 0248B020		add	$s6, $s2, $t0
+ 593 05f4 02D7B020		add	$s6, $s6, $s7
+ 594 05f8 228FFFFF		addi	$t7, $s4, -1
+ 595 05fc 120F0001		beq	$s0, $t7, br_bot
+ 596 0600 08000184		j	br_post_bot
+ 597 0604               br_bot:
+ 598 0604 02F40018		mul	$t1, $s7, $s4
+     0608 00004812
+ 599 060c 02C9B022		sub	$s6, $s6, $t1
+ 600 0610               br_post_bot:
+ 601 0610 228FFFFF		addi	$t7, $s4, -1	
+ 602 0614 122F0001		beq	$s1, $t7, br_right
+ 603 0618 08000188		j	br_post_right
+ 604 061c               br_right:
+ 605 061c 02D7B022		sub	$s6, $s6, $s7
+ 606 0620               br_post_right:
+ 607 0620 8ECA0000		lw	$t2, 0($s6)
+ 608 0624 11400001		beq	$t2, $zero, br_no_cell
+ 609 0628 22B50001		addi	$s5, 1
+ 610 062c               br_no_cell:
+ 611 062c               
+ 612 062c               
+ 613 062c               						#Determine if cell lives or dies
+ 614 062c 34080041		li	$t0, 65
+ 615 0630 34090001		li	$t1, 1
+ 616 0634 340A0002		li	$t2, 2
+ 617 0638 340B0003		li	$t3, 3
+ 618 063c 8E560000		lw	$s6, 0($s2)
+ 619 0640 12C0000B		beq	$s6, $zero, p_dead_cell		#Branch statements for each tally case
+ 620 0644 12A00008		beq	$s5, $zero, dying_cell
+ 621 0648 12A90007		beq	$s5, $t1, dying_cell
+ 622 064c 12AA0002		beq	$s5, $t2, plus_age
+ 623 0650 12AB0001		beq	$s5, $t3, plus_age
+ 624 0654 0800019A		j	dying_cell
+ 625 0658               plus_age:					#Add one generation to the cell
+ 626 0658 8E4D0000		lw	$t5, 0($s2)
+ 627 065c 21AD0001		addi	$t5, 1
+ 628 0660 AE6D0000		sw	$t5, 0($s3)
+ 629 0664 080001A1		j	p_end
+ 630 0668               dying_cell:					#Cell dies
+ 631 0668 AE600000		sw	$zero, 0($s3)
+ 632 066c 080001A1		j	p_end
+ 633 0670               p_dead_cell:					#Determine if dead cell should be revivied
+ 634 0670 12AB0002		beq	$s5, $t3, revived_cell
+ 635 0674 AE600000		sw	$zero, 0($s3)
+ 636 0678 080001A1		j	p_end
+ 637 067c               revived_cell:					#Dead cell is risen
+ 638 067c AE680000		sw	$t0, 0($s3)
+ 639 0680 080001A1		j	p_end
+ 640 0684               
+ 641 0684               p_end:
+ 642 0684 34150000		li	$s5, 0				#Increment counters for loop
+ 643 0688 22310001		addi	$s1, 1				#Increment board pointers
+ 644 068c 22520004		addi	$s2, 4
+ 645 0690 22730004		addi	$s3, 4
+ 646 0694 0800012D		j	process_inner_loop
+ 647 0698               process_inner_loop_end:
+ 648 0698 22100001		addi	$s0, $s0, 1
+ 649 069c 34110000		li	$s1, 0
+ 650 06a0 0800012C		j	process_loop
+ 651 06a4               process_loop_end:
+ 652 06a4               
+ 653 06a4               
+ 654 06a4               
+ 655 06a4 8FBF0000		lw	$ra, 0($sp)			#Move the stack pointers back
+ 656 06a8 8FB00004		lw	$s0, 4($sp)
+ 657 06ac 8FB10008		lw	$s1, 8($sp)
+ 658 06b0 8FB2000C		lw	$s2, 12($sp)
+ 659 06b4 8FB30010		lw	$s3, 16($sp)
+ 660 06b8 8FB40014		lw	$s4, 20($sp)
+ 661 06bc 8FB50018		lw	$s5, 24($sp)
+ 662 06c0 8FB6001C		lw	$s6, 28($sp)
+ 663 06c4 8FB70020		lw	$s7, 32($sp)
+ 664 06c8 8FA50024		lw	$a1, 36($sp)
+ 665 06cc 23BD0028		addi	$sp, $sp, 40
+ 666 06d0 03E00008		jr	$ra	
+ 667 06d4               
+ 668 06d4               
+
+
+A                         0000034C R  text 
+CORNER                  = 0000002B   
+DEAD                    = 00000020   
+EXIT                    = 0000000A   
+HORIZONTAL              = 0000002D   
+PRINT_CHAR              = 0000000B   
+PRINT_INT               = 00000001   
+PRINT_STRING            = 00000004   
+READ_INT                = 00000005   
+VERTICAL                = 0000007C   
+after_load                000004B0 R  text 
+b_bot                     000005D8 R  text 
+b_no_cell                 000005F0 R  text 
+b_post_bot                000005E4 R  text 
+banner                    00001C2C R  data 
+bl_bot                    000005A4 R  text 
+bl_left                   000005B8 R  text 
+bl_no_cell                000005C8 R  text 
+bl_post_bot               000005B0 R  text 
+bl_post_left              000005BC R  text 
+board                     0000000C R  data 
+board_b                   00000E1C R  data 
+board_size                00000000 R  data 
+bot_end                   000003F8 R  text 
+bot_loop                  000003E8 R  text 
+br_bot                    00000604 R  text 
+br_no_cell                0000062C R  text 
+br_post_bot               00000610 R  text 
+br_post_right             00000620 R  text 
+br_right                  0000061C R  text 
+cells_failure             00000138 R  text 
+cells_success             0000014C R  text 
+dead_cell                 00000390 R  text 
+draw_board                0000028C R  text 
+dying_cell                00000668 R  text 
+first_piece               00001DC6 R  data 
+gen_failure               000000C8 R  text 
+gen_success               000000DC R  text 
+generations               00000004 R  data 
+illegal_cells             00001D72 R  data 
+illegal_generations       00001D3D R  data 
+illegal_loc               00001DA6 R  data 
+illegal_size              00001D13 R  data 
+l_left                    00000560 R  text 
+l_no_cell                 00000570 R  text 
+l_post_left               00000564 R  text 
+live_cells                00000008 R  data 
+loc_failure               00000208 R  text 
+main                      00000000 RG text 
+main_done                 00000260 R  text 
+main_end                  00000260 R  text 
+main_loop                 00000240 R  text 
+middle_end                000003D0 R  text 
+middle_inner_end          000003A8 R  text 
+middle_inner_loop         0000036C R  text 
+middle_loop               0000035C R  text 
+newline                   00001DE5 R  data 
+next                      00000354 R  text 
+p_dead_cell               00000670 R  text 
+p_end                     00000684 R  text 
+plus_age                  00000658 R  text 
+process_a                 000004A0 R  text 
+process_generation        00000444 R  text 
+process_inner_loop        000004B4 R  text 
+process_inner_loop_end    00000698 R  text 
+process_loop              000004B0 R  text 
+process_loop_end          000006A4 R  text 
+prompt_board_size         00001C9F R  data 
+prompt_live_cells         00001CDA R  data 
+prompt_num_gen            00001CB4 R  data 
+prompt_start_loc          00001CF8 R  data 
+r_no_cell                 00000590 R  text 
+r_post_right              00000584 R  text 
+r_right                   00000580 R  text 
+read_cells                000000F8 R  text 
+read_end                  00000220 R  text 
+read_generations          000000A0 R  text 
+read_loc                  00000168 R  text 
+read_loop                 00000180 R  text 
+read_size                 00000048 R  text 
+revived_cell              0000067C R  text 
+second_piece              00001DDB R  data 
+size_failure              00000070 R  text 
+size_success              00000084 R  text 
+t_no_cell                 0000051C R  text 
+t_post_top                00000510 R  text 
+t_top                     00000504 R  text 
+tl_left                   000004E8 R  text 
+tl_no_cell                000004F8 R  text 
+tl_post_left              000004EC R  text 
+tl_post_top               000004E0 R  text 
+tl_top                    000004D4 R  text 
+top_end                   00000324 R  text 
+top_loop                  00000314 R  text 
+tr_no_cell                00000554 R  text 
+tr_post_right             00000548 R  text 
+tr_post_top               00000538 R  text 
+tr_right                  00000544 R  text 
+tr_top                    0000052C R  text 

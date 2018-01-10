@@ -1,0 +1,114 @@
+Load map
+========
+
+Module:  life_age.obj
+ Text segment:  1748 bytes, load point 0x00400000
+ Data segment:  7656 bytes, load point 0x10000000
+ Symbols:
+                    Name Section Mode    Value
+           cells_success   Text   R   0x0040014c
+            r_post_right   Text   R   0x00400584
+                main_end   Text   R   0x00400260
+                  br_bot   Text   R   0x00400604
+              tr_no_cell   Text   R   0x00400554
+              t_post_top   Text   R   0x00400510
+             illegal_loc   Data   R   0x10001da6
+           cells_failure   Text   R   0x00400138
+                       A   Text   R   0x0040034c
+            tl_post_left   Text   R   0x004004ec
+              live_cells   Data   R   0x10000008
+            revived_cell   Text   R   0x0040067c
+                   board   Data   R   0x1000000c
+      process_inner_loop   Text   R   0x004004b4
+       prompt_board_size   Data   R   0x10001c9f
+              tl_no_cell   Text   R   0x004004f8
+                 r_right   Text   R   0x00400580
+              board_size   Data   R   0x10000000
+             first_piece   Data   R   0x10001dc6
+             generations   Data   R   0x10000004
+                  l_left   Text   R   0x00400560
+          prompt_num_gen   Data   R   0x10001cb4
+                READ_INT          A   0x00000005
+                   p_end   Text   R   0x00400684
+              dying_cell   Text   R   0x00400668
+               main_loop   Text   R   0x00400240
+                 bot_end   Text   R   0x004003f8
+                plus_age   Text   R   0x00400658
+  process_inner_loop_end   Text   R   0x00400698
+               t_no_cell   Text   R   0x0040051c
+                 newline   Data   R   0x10001de5
+            size_failure   Text   R   0x00400070
+           illegal_cells   Data   R   0x10001d72
+     illegal_generations   Data   R   0x10001d3d
+      process_generation   Text   R   0x00400444
+        prompt_start_loc   Data   R   0x10001cf8
+               r_no_cell   Text   R   0x00400590
+              middle_end   Text   R   0x004003d0
+                br_right   Text   R   0x0040061c
+                  bl_bot   Text   R   0x004005a4
+                  tr_top   Text   R   0x0040052c
+             loc_failure   Text   R   0x00400208
+                   b_bot   Text   R   0x004005d8
+        read_generations   Text   R   0x004000a0
+               dead_cell   Text   R   0x00400390
+             tr_post_top   Text   R   0x00400538
+               b_no_cell   Text   R   0x004005f0
+           br_post_right   Text   R   0x00400620
+                top_loop   Text   R   0x00400314
+                tr_right   Text   R   0x00400544
+              b_post_bot   Text   R   0x004005e4
+              after_load   Text   R   0x004004b0
+                 top_end   Text   R   0x00400324
+               l_no_cell   Text   R   0x00400570
+              draw_board   Text   R   0x0040028c
+            size_success   Text   R   0x00400084
+             br_post_bot   Text   R   0x00400610
+                 board_b   Data   R   0x10000e1c
+            PRINT_STRING          A   0x00000004
+           tr_post_right   Text   R   0x00400548
+             gen_failure   Text   R   0x004000c8
+        middle_inner_end   Text   R   0x004003a8
+                    main   Text   RG  0x00400000
+        process_loop_end   Text   R   0x004006a4
+                  banner   Data   R   0x10001c2c
+             middle_loop   Text   R   0x0040035c
+              br_no_cell   Text   R   0x0040062c
+                 bl_left   Text   R   0x004005b8
+             tl_post_top   Text   R   0x004004e0
+                 tl_left   Text   R   0x004004e8
+                read_end   Text   R   0x00400220
+             p_dead_cell   Text   R   0x00400670
+            process_loop   Text   R   0x004004b0
+              read_cells   Text   R   0x004000f8
+                   t_top   Text   R   0x00400504
+               main_done   Text   R   0x00400260
+                  CORNER          A   0x0000002b
+             bl_post_bot   Text   R   0x004005b0
+       prompt_live_cells   Data   R   0x10001cda
+                bot_loop   Text   R   0x004003e8
+             gen_success   Text   R   0x004000dc
+            second_piece   Data   R   0x10001ddb
+              bl_no_cell   Text   R   0x004005c8
+                  tl_top   Text   R   0x004004d4
+               read_size   Text   R   0x00400048
+              HORIZONTAL          A   0x0000002d
+            bl_post_left   Text   R   0x004005bc
+                    next   Text   R   0x00400354
+                    EXIT          A   0x0000000a
+             l_post_left   Text   R   0x00400564
+                VERTICAL          A   0x0000007c
+       middle_inner_loop   Text   R   0x0040036c
+                    DEAD          A   0x00000020
+               PRINT_INT          A   0x00000001
+               process_a   Text   R   0x004004a0
+              PRINT_CHAR          A   0x0000000b
+                read_loc   Text   R   0x00400168
+               read_loop   Text   R   0x00400180
+            illegal_size   Data   R   0x10001d13
+
+Module:  r2k_startup.obj
+ Text segment:  36 bytes, load point 0x004006d4
+ Symbols:
+                    Name Section Mode    Value
+               SYS_EXIT2          A   0x00000011
+          __r2k__entry__   Text   RG  0x004006d8

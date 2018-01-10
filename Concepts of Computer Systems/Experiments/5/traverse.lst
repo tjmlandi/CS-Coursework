@@ -1,0 +1,127 @@
+   1 0000               # File:		traverse_tree.asm
+   2 0000               # Author:	K. Reek
+   3 0000               # Contributors:	P. White,
+   4 0000               #		W. Carithers,
+   5 0000               #		Thomas Landi
+   6 0000               #
+   7 0000               # Description:	Binary tree traversal functions.
+   8 0000               #
+   9 0000               # Revisions:	$Log$
+  10 0000               
+  11 0000               
+  12 0000               # CONSTANTS
+  13 0000               #
+  14 0000               
+  15 0000               # traversal codes
+  16 0000               PRE_ORDER  = 0
+  17 0000               IN_ORDER   = 1
+  18 0000               POST_ORDER = 2
+  19 0000               
+  20 0000               	.text			# this is program code
+  21 0000               	.align 2		# instructions must be on word boundaries
+  22 0000               
+  23 0000               	.globl	traverse_tree
+  24 0000               
+  25 0000               #***** BEGIN STUDENT CODE BLOCK 3 *****************************
+  26 0000               #
+  27 0000               # Put your traverse_tree subroutine here.
+  28 0000               #
+  29 0000               traverse_tree:
+  30 0000 23BDFFE8		addi	$sp, $sp, -24
+  31 0004 AFBF0014		sw	$ra, 20($sp)
+  32 0008 AFB40010		sw	$s4, 16($sp)
+  33 000c AFB3000C		sw	$s3, 12($sp)
+  34 0010 AFB20008		sw	$s2, 8($sp)
+  35 0014 AFB10004		sw	$s1, 4($sp)
+  36 0018 AFB00000		sw	$s0, 0($sp)
+  37 001c               
+  38 001c 00C09021		move	$s2, $a2		#Save the params to s registers
+  39 0020 00A08821		move	$s1, $a1
+  40 0024 00808021		move	$s0, $a0
+  41 0028               
+  42 0028 8E130004		lw	$s3, 4($s0)		#Load the leaves of the current node
+  43 002c 8E140008		lw	$s4, 8($s0)
+  44 0030               
+  45 0030 34090001		li	$t1, IN_ORDER		#Load the constants
+  46 0034 340A0002		li	$t2, POST_ORDER
+  47 0038               
+  48 0038 12400002		beq	$s2, $zero, pre_order	#Check what type of traversal
+  49 003c 12490009		beq	$s2, $t1, in_order
+  50 0040 124A0011		beq	$s2, $t2, post_order
+  51 0044               
+  52 0044               
+  53 0044               #
+  54 0044               # Pre Order Traversal
+  55 0044               #
+  56 0044               pre_order:
+  57 0044 0220F809		jalr	$s1			#Node Process
+  58 0048 12600002		beq	$s3, $zero, after_0	#Left Child traversal
+  59 004c 02602021		move	$a0, $s3
+  60 0050 0C000000		jal	traverse_tree
+  61 0054               after_0:
+  62 0054 12800002		beq	$s4, $zero, after_1	#Right Child traversal
+  63 0058 02802021		move	$a0, $s4
+  64 005c 0C000000		jal	traverse_tree
+  65 0060               after_1:
+  66 0060 0800002B		j end
+  67 0064               
+  68 0064               #
+  69 0064               # In Order Traversal
+  70 0064               #
+  71 0064               in_order:
+  72 0064 12600002		beq	$s3, $zero, after_2	#Left Child traversal
+  73 0068 02602021		move	$a0, $s3
+  74 006c 0C000000		jal	traverse_tree
+  75 0070               after_2:
+  76 0070 02002021		move	$a0, $s0		#Node Process
+  77 0074 0220F809		jalr	$s1			
+  78 0078 12800002		beq	$s4, $zero, after_3	#Right Child traversal
+  79 007c 02802021		move	$a0, $s4
+  80 0080 0C000000		jal	traverse_tree
+  81 0084               after_3:
+  82 0084 0800002B		j end
+  83 0088               
+  84 0088               #
+  85 0088               # Post Order Traversal
+  86 0088               #
+  87 0088               post_order:
+  88 0088 12600002		beq	$s3, $zero, after_4	#Left Child traversal
+  89 008c 02602021		move	$a0, $s3
+  90 0090 0C000000		jal	traverse_tree
+  91 0094               after_4:
+  92 0094 12800002		beq	$s4, $zero, after_5	#Right Child traversal
+  93 0098 02802021		move	$a0, $s4
+  94 009c 0C000000		jal	traverse_tree
+  95 00a0               after_5:
+  96 00a0 02002021		move	$a0, $s0		#Node Process
+  97 00a4 0220F809		jalr	$s1		
+  98 00a8 0800002B		j end
+  99 00ac               
+ 100 00ac               end:
+ 101 00ac 8FBF0014		lw	$ra, 20($sp)
+ 102 00b0 8FB40010		lw	$s4, 16($sp)
+ 103 00b4 8FB3000C		lw	$s3, 12($sp)
+ 104 00b8 8FB20008		lw	$s2, 8($sp)
+ 105 00bc 8FB10004		lw	$s1, 4($sp)
+ 106 00c0 8FB00000		lw	$s0, 0($sp)
+ 107 00c4 23BD0018		addi	$sp, $sp, 24
+ 108 00c8 03E00008		jr	$ra
+ 109 00cc               
+ 110 00cc                
+ 111 00cc               #***** END STUDENT CODE BLOCK 3 *****************************
+
+
+IN_ORDER       = 00000001   
+POST_ORDER     = 00000002   
+PRE_ORDER      = 00000000   
+after_0          00000054 R  text 
+after_1          00000060 R  text 
+after_2          00000070 R  text 
+after_3          00000084 R  text 
+after_4          00000094 R  text 
+after_5          000000A0 R  text 
+end              000000AC R  text 
+in_order         00000064 R  text 
+post_order       00000088 R  text 
+pre_order        00000044 R  text 
+traverse_tree    00000000 RG text 
