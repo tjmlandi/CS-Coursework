@@ -1,0 +1,17 @@
+Lab 1: System Intro, Part 2
+Name: Thomas Landi
+
+8. Given the program files main.c, circle.h and circle.c.
+    a.) What commands would you use to compile the source files
+        into object files?
+        
+        gcc -c  main.c circle.c
+        
+    b.) What command would you use to link the object files 
+        into an executable named broken?
+        
+        gcc -o broken main.o circle.o
+        
+    c.) Explain why the program compiles but does not link.
+    
+        The program compiles because both c files are syntatically correct. However, main.c tries to call a function getArea in circle.h, but the original name for the function in circle.c is getAreas, which is not the same name, so there is no getArea for the linker to find.

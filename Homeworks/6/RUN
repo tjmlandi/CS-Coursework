@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# student testing script
+#
+
+for f in 1 2 3 4
+do
+	echo Running test $f
+	./queueTest$f > out.$f
+	echo cmp stdout.$f out.$f
+	cmp stdout.$f out.$f
+done
