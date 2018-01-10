@@ -1,0 +1,27 @@
+Thomas Landi - Intro to Intelligent Systems - Lab 2
+
+The decision tree involves checks to see double vowels/consonants (the same letter) as double vowels
+seemed rather particular to dutch, and the opposite for english. The next check was for at least
+five consecutive vowels, or consonants, as I wasn't sure this would be useful, but seemed to be 
+a feature of the languages. As for the relative frequency of T vs N, both languages have E as 
+their most common letter, but their second/third most common differed, so it seemed useful. General
+vowel frequency is different amongst languages, but I wasn't sure about english vs dutch, however
+it still seemed a possibility. The frequency of E was specifically included as both languages 
+had a different frequency of that letter, and that had one of the largest discrepancies of any letter.
+Dutch also appeared to have many short words, hence the next check for words shorter than four 
+letters. In english, the most common letter to start a word is T, so the was the usefulness of the 
+next attribute. Lastly, Z was much closer to non existant in Dutch than in English, so it's inclusion
+at all seemed useful to look at.
+
+The boosting depth was picked as attempting to go much higher than 4 seemed to cause the algorithm
+to slow down considerably, and watching the intermediate values seemed to indicate that the algorithm
+started to stop improving at that point.
+
+The example texts were simply copied, three each from ten different random pages, five in english,
+five in dutch.
+
+In order to swap between boosting/non boosting, the NoBoost variable must simply be toggled.
+
+The command line args are simply either "train" in order to run the training algorithm, 
+or "predict [FILENAME]" in order to run the prediction on text in [FILENAME], or "predict"
+in order to be prompted for standard input.

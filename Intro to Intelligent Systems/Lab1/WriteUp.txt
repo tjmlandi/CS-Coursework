@@ -1,0 +1,19 @@
+Thomas Landi - Lab 1 - Write Up
+
+The terrain part of the implementation of the cost function was mostly based on 
+estimates of how fast I would normally traverse the terrain conditions,
+based on previous experience. The cost function would then multiply the distance
+to the next point to adjust for this difference in speed to a normal travel speed
+through an open field. For the elevation, a curve was picked that would fit the grade
+to a multiplier, where the more negative the grade, the shorter the distance would
+get, and vice versa, with a negative 50% equating to twice the movement speed,
+0% equating to the same movement speed (flat ground) and positive 100% to half the 
+movement speed (45 degree incline). Lastly, the distance from the point to the goal
+was also factored into the cost, to weight the path towards points in the direction
+of the overall goal, as that would generally be the trend for shorter paths. 
+Most of the justification for the multipliers came from previous personal hiking experience,
+so it may not be experimentally correct, but I was unsure of where to find data for 
+walking speeds as a function of terrain/elevation changes.
+
+The human readable output was done as a trail drawn over the original map, as that 
+seemed the clearest to interperet.
