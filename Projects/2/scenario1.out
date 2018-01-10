@@ -1,0 +1,19 @@
+Separation between Janet and Janet is 0.
+Separation between Janet and Joe is 1.
+Separation between Janet and Jocelyn is 2.
+Separation between Janet and Jim is -1.
+Separation between Jim and Janet is -1.
+Separation between Jocelyn and Janet is 2.
+Separation between Joe and Janet is 1.
+
+User Janet; friends: Joe
+User Joe; friends: Jocelyn Janet
+User Jocelyn; friends: Joe
+User Jim; friends:
+
+
+User Janet; friends:
+User Joe; friends: Jocelyn
+User Jocelyn; friends: Joe
+User Jim; friends:
+
