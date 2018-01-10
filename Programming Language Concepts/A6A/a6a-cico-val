@@ -1,0 +1,93 @@
+Val
+%%%
+import java.util.*;
+
+public abstract class Val {
+
+    public static Val [] toArray(List<Val> valList) {
+        int n = valList.size();
+        return valList.toArray(new Val[n]);
+    }
+
+    public Val apply(List<Ref> refList) {
+        throw new RuntimeException("cannot apply " + this);
+    }
+
+    public boolean isTrue() {
+        return true; // everything is true except for an IntVal of zero
+    }
+
+    public int intVal() {
+        throw new RuntimeException("cannot convert " + this + " to an int");
+    }
+
+}
+%%%
+
+IntVal
+%%%
+import java.util.*;
+
+public class IntVal extends Val {
+
+    public int val;
+    
+    public IntVal(String s) {
+	val = Integer.parseInt(s);
+    }
+    
+    public IntVal(Val v) {
+	val = v.intVal();
+    }
+    
+    public IntVal(int v) {
+	val = v;
+    }
+
+    public int intVal() {
+        return val;
+    }
+    
+    public boolean isTrue() {
+	return val != 0;
+    }
+    
+    public String toString() {
+	return "" + val;
+    }
+
+}
+%%%
+
+ProcVal
+%%%
+import java.util.*;
+
+public class ProcVal extends Val {
+
+    public Formals formals;
+    public Exp body;
+    public Env env;
+
+    public ProcVal(Formals formals, Exp body, Env env) {
+	this.formals = formals;
+        this.body = body;
+        this.env = env;
+    }
+
+    public Val apply(List<Ref> refList) {
+        Bindings bindings = new Bindings(formals.varList, refList);
+	Env nenv = env.extendEnvRef(bindings);
+	Val val = body.eval(nenv);
+	for (int i = 0; i < refList.size(); ++i) {
+		refList.get(i).copyOut();
+	}
+        return val;
+    }
+
+    public String toString() {
+        return "proc";
+    }
+
+}
+%%%

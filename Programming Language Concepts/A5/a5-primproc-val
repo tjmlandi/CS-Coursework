@@ -1,0 +1,250 @@
+Val
+%%%
+import java.util.*;
+
+public abstract class Val {
+
+    public static final IntVal zero = new IntVal(0);
+
+    public static Val [] toArray(List<Val> valList) {
+        int n = valList.size();
+        return valList.toArray(new Val[n]);
+    }
+
+    public Val apply(List<Val> args, Env e) {
+	throw new RuntimeException("Cannot apply " + this);
+    }
+
+    public boolean isTrue() {
+        return true; // any Val is true except for an IntVal of zero
+    }
+
+    public int intVal() {
+        throw new RuntimeException("cannot convert " + this + " to an int");
+    }
+}
+%%%
+
+IntVal
+%%%
+import java.util.*;
+
+public class IntVal extends Val {
+
+    public int val;
+    
+    public IntVal(String s) {
+	val = Integer.parseInt(s);
+    }
+    
+    public IntVal(Val v) {
+	val = v.intVal();
+    }
+    
+    public IntVal(int v) {
+	val = v;
+    }
+
+    public int intVal() {
+        return val;
+    }
+    
+    public boolean isTrue() {
+	return val != 0;
+    }
+    
+    public String toString() {
+	return "" + val;
+    }
+
+    public static void main(String [] args) {
+	Val v = new IntVal(3);
+	Val w = new IntVal(0);
+	System.out.println("v=" + v);
+	System.out.println("w=" + w);
+    }
+    
+}
+%%%
+
+ProcVal
+%%%
+import java.util.*;
+
+public class ProcVal extends Val {
+
+    public Formals formals;
+    public Exp body;
+    public Env env;
+
+    public ProcVal(Formals formals, Exp body, Env env) {
+	this.formals = formals;
+        this.body = body;
+        this.env = env;
+    }
+
+    public Val apply(List<Val> args, Env e) {
+	// bind the formals to the arguments
+        Bindings bindings = new Bindings(formals.varList, args);
+        // extend the captured environment with these bindings
+	Env nenv = env.extendEnv(bindings);
+        // and evaluate the body in this new environment
+        return body.eval(nenv);
+    }
+
+    public String toString() {
+        return "proc";
+    }
+}
+
+%%%
+
+PrimVal
+%%%
+import java.util.*;
+
+public abstract class PrimVal extends Val {
+
+	public static Val addPrim = new AddPrimVal();
+	public static Val subPrim = new SubPrimVal();
+	public static Val mulPrim = new MulPrimVal();
+	public static Val divPrim = new DivPrimVal();
+	public static Val add1Prim = new Add1PrimVal();
+	public static Val sub1Prim = new Sub1PrimVal();
+	public static Val zeropPrim = new ZeropPrimVal();
+
+	public abstract Val apply(List<Val> args, Env e);
+
+}
+%%%
+
+AddPrimVal
+%%%
+import java.util.*;
+
+public class AddPrimVal extends PrimVal {
+	
+	public Val apply(List<Val> args, Env e) {
+		Val [] va = Val.toArray(args);
+		int v0 = va[0].intVal();
+		int v1 = va[1].intVal();
+		return new IntVal(v0 + v1);
+	}
+
+	public String toString() {
+		return "+";
+	}
+}
+%%%
+
+SubPrimVal
+%%%
+import java.util.*;
+
+public class SubPrimVal extends PrimVal {
+	
+	public Val apply(List<Val> args, Env e) {
+		Val [] va = Val.toArray(args);
+		int v0 = va[0].intVal();
+		int v1 = va[1].intVal();
+		return new IntVal(v0 - v1);
+	}
+
+	public String toString() {
+		return "-";
+	}
+}
+%%%
+
+MulPrimVal
+%%%
+import java.util.*;
+
+public class MulPrimVal extends PrimVal {
+
+	public Val apply(List<Val> args, Env e) {
+		Val [] va = Val.toArray(args);
+		int v0 = va[0].intVal();
+		int v1 = va[1].intVal();
+		return new IntVal(v0 * v1);
+	}
+
+	public String toString() {
+		return "*";
+	}
+}
+%%%
+
+DivPrimVal
+%%%
+import java.util.*;
+
+public class DivPrimVal extends PrimVal {
+	
+	public Val apply(List<Val> args, Env e) {
+		Val [] va = Val.toArray(args);
+		int v0 = va[0].intVal();
+		int v1 = va[1].intVal();
+		if (v1 == 0)
+			throw new RuntimeException("attempt to divide by zero");
+		return new IntVal(v0 / v1);
+	}
+	
+	public String toString() {
+		return "/";
+	}
+}
+%%%
+
+Add1PrimVal
+%%%
+import java.util.*;
+
+public class Add1PrimVal extends PrimVal {
+		
+	public Val apply(List<Val> args, Env e) {
+		Val [] va = Val.toArray(args);
+		int v0 = va[0].intVal();
+		return new IntVal(v0 + 1);
+	}
+
+	public String toString() {
+		return "add1";
+	}
+}
+%%%
+
+Sub1PrimVal
+%%%
+import java.util.*;
+
+public class Sub1PrimVal extends PrimVal {
+	public Val apply(List<Val> args, Env e) {
+		Val [] va = Val.toArray(args);
+		int v0 = va[0].intVal();
+		return new IntVal(v0 - 1);
+	}
+	
+	public String toString() {
+		return "sub1";
+	}
+}
+%%%
+
+ZeropPrimVal
+%%%
+import java.util.*;
+
+public class ZeropPrimVal extends PrimVal {
+	
+	public Val apply(List<Val> args, Env e) {
+		Val [] va = Val.toArray(args);
+		int v0 = va[0].intVal();
+		return new IntVal(v0 == 0 ? 1 : 0);
+	}
+
+	public String toString() {
+		return "zero?";
+	}
+}
+%%%

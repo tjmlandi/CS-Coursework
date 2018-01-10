@@ -1,0 +1,231 @@
+CSCI 344 - Programming Language Concepts
+Assignment 1 (90 points)
+Due Wednesday, Feb 8, 2017
+
+NOTE:
+You are to answer each of these questions, indicated by a '##QUESTION:'
+line,  by entering your corresponding answer in the space following each
+'##ANSWER:' line.  For example, your FIRST QUESTION is to enter your name.
+Please leave whitespace around your answers so they are easy to read.
+
+Your submission must consists of this TEXT file, with your answers added
+as described above.  Edit this file using a text editor, not a word
+processor.
+
+In some cases, your answers may be Java methods or PLCC grammar file
+entries.  In other cases, your answers may be a short paragraph.  DO NOT
+MAKE ANY CHANGES TO THE QUESTIONS OR OTHER TEXT CONTAINED IN THIS FILE
+except for obvious directives such as "<replace this ...>" or "**FIXME**".
+Just add your answers in the space provided *after* the '##ANSWER:' lines.
+Add more whitespace in your answer lines if you need to do so, but LEAVE
+THE ORIGINAL FILE CONTENTS AS-IS.
+
+This file can be found on the CS lab server here:
+
+   ~tvf/CSCI344/Assignments/A1/a1
+
+SUBMIT YOUR EDITED FILE WITH THE NAME 'a1', following the SUBMISSION
+REQUIREMENTS section at the end of this file.
+
+##QUESTION:
+0.   (5 pts)
+     Name:
+##ANSWER:
+Thomas Landi
+
+##QUESTION:
+1.  (10 pts)
+    Write a lexical specification acceptable to PLCC that skips over
+    whitespace and skips all characters in a line that start with a '#'
+    character and go to the end of the line.  The lexical specification
+    should accept the following strings as specific tokens:
+
+        this
+        that
+        the
+        other
+        thing
+
+    All other strings consisting of letters, digits, and underscores
+    should be returned as a single token.  You should use appropriate
+    token class names.
+
+    [Not to hand in:  Test your lexical specification by making a
+    directory in which you will do your work, creating a grammar file in
+    this directory with the specified contents, running the plccmk tool,
+    and executing the resulting Scan class in the Java subdirectory.]
+
+##ANSWER:
+skip WHITESPACE '\s+'
+skip COMMENT '#.*\n?'
+THIS 'this'
+THAT 'that'
+THE 'the
+OTHER 'other'
+THING 'thing'
+SYMBOL '\w'
+
+##QUESTION:
+2.  (10 pts)
+    Consider the following grammar rule in a PLCC file:
+
+        <blah>:Goo ::= THIS <VAR> IS <silly>
+
+    What (non-abstract) Java class does this grammar rule define, and what
+    are its instance variables and types?  Write your answer in the form
+
+        XXX(AAA aaa, BBB bbb, ...)
+
+    where XXX is the class name and the instance variables are aaa
+    of type AAA, bbb of type BBB, and so forth.
+
+##ANSWER:
+Goo extends Blah (Token var, Silly silly)
+
+##QUESTION:
+3.  (10 pts)
+    Repeat the question above, except use the following grammar rule:
+
+        <many> **= THIS <rule> HAS MULTIPLE OCCURRENCES <OF> <stuff>
+
+##ANSWER:
+Many (List<Rule> ruleList, List<Token> ofList, List<Stuff> stuffList)
+
+
+##QUESTION:
+4.  (10 pts)
+    Repeat the question above, except use the following grammar rule:
+
+        <classes> ::= I AM TAKING <class>c1 <class>c2 AND <class>c3
+
+##ANSWER:
+Classes (Class c1, Class c2, Class c3)
+
+##QUESTION:
+5.  (5 pts)
+    What is wrong with this grammar rule in a PLCC file?  You can assume
+    that this is part of a larger PLCC grammar file in which other token
+    specifications and grammar rules may appear.  Your answer should be a
+    grammar rule that fixes all of the errors on this line.  The number of
+    characters in your answer must be the same as the number of characters
+    in the original line.  Do not add or remove any of the '<' or '>'
+    characters.
+
+        <VAR>  := tok <foo>
+
+##ANSWER:
+<var> ::= TOK <foo>
+
+##QUESTION:
+6.  (10 pts)
+    Write a BNF grammar that accepts any string consisting of balanced
+    parentheses followed by an at-sign (@). For example,
+    the following strings
+
+                  @
+                  ()@
+                  ()(()(()))@
+
+    are legal, but
+
+                  ())@
+                  (@
+                  )(@
+                  (()@
+                  ()
+
+    are not.  Your BNF grammar should use the token names LPAREN, RPAREN,
+    and ATSIGN.  Use <balanced> as the first nonterminal (and hence the
+    start symbol).  You should be able to define your grammar in just
+    three BNF lines using two nonterminals.  (Do *not* try to make
+    your grammar rules conform to PLCC.  In particular, do not provide
+    a token specification section.)
+
+    [For your information, here's the formal definition of "balanced
+    parentheses":  A string of parenthesis symbols -- left paren "("
+    and right paren ")" -- is said to be _balanced_ if the number of left
+    parens is equal to the number of right parens in the entire string,
+    and for each substring starting at the beginning of the string, the
+    number of right parens in the substring is not greater than the number
+    of left parens in the substring.  (Define an integer variable 'count'
+    equal to zero.  Then march through the string from left to right.
+    For each left paren, add 1 to 'count'; and for each right paren,
+    subtract 1 from 'count'.  If the value of 'count' is never negative,
+    and if the value of 'count' is zero at the end of the string, then
+    the string is balanced.]
+
+    Your answer should be just in terms of grammar rules.
+
+    Hints:
+    a.  It is possible to do this with just three grammar rules. Keep
+        your grammar uncluttered!
+    b.  If you feel so inclined, you can make your grammar rules
+        acceptable to PLCC, so you can check your grammar with actual
+        input strings. If you choose to do this, you will need to have
+        a lexical specification section as well that defines the LPAREN,
+        RPAREN, and ATSIGN tokens. It is unnecessary for you to do this
+        in your ANSWER below.
+
+##ANSWER:
+<balanced> ::= <interior> ATSIGN
+<interior>:InteriorNode ::= LPAREN <interior>down RPAREN <interior>right
+<interior>:InteriorNull ::=
+
+##QUESTION:
+7.  (10 pts)
+    Use the BNF grammar you defined in 6 to give leftmost derivations of
+    each of the following two strings.  This is a written answer that
+    you should hand in on a separate sheet of paper.
+
+                  ()@
+                  ()(()(()))@
+
+##ANSWER:
+    Hand in your answer on a separate sheet of paper.  Do not include
+    it in your submitted file.
+
+
+##QUESTION:
+8.  (20 pts)
+    As we have shown in our class notes slide 1.37 and in the LON2
+    code directory, we can have the Read-eval-print loop print the
+    list of numbers in human-readable form by defining an appropriate
+    toString() method in the Lon class. The LON2 grammar uses a
+    repeating rule to collect the NUM Token values in a list, which
+    we traversed in the toString() method to print the values.
+
+    Start with the original list-of-numbers grammar in the code directory
+    LON. Create a working directory named LON1.5 and copy the grammar
+    file from the LON directory into your working directory.
+
+    Add semantics routines to this file -- in the section following the
+    grammar rules -- to print the NUM Token values in exactly the same
+    way that we accomplished in LON2. To do this, add a toString()
+    method in the Lon class to return a string using a one-liner,
+    as follows:
+
+        return "( " + nums.toString() + ")";
+
+    Then add a toString() method in each of the Nums subclasses to 
+    print the numbers as we have described. You will need separate
+    toString() methods in the NumsNode class and the NumsNull class.
+    [Hint: these are one-liners, too!]
+
+##ANSWER
+    See the submission requirements below.
+
+
+##SUBMISSION REQUIREMENTS
+    a.  Submit your edited a1 file (i.e, THIS FILE with changes as
+        described above) to your A1 dropbox in MyCourses, using the
+        filename 'a1'.
+    b.  Hand in your leftmost derivations for the balanced parentheses
+        in class on the due date (see above).
+    c.  Submit your modified grammar file in your LON1.5 directory
+        (the one you created in Question 8 above) to your A1 dropbox in
+ 
+
+
+
+
+      MyCourses, using the filename 'grammar'.

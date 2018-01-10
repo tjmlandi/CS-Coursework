@@ -1,0 +1,24 @@
+define fst = proc(p) .p(0)
+define snd = proc(p) .p(1)
+define pair = proc(x, y) proc(t) if t then y else x
+
+define displayPair = 
+	proc(p)
+		{ displayChar 40
+		; display .fst(p)
+		; displayChar 44
+		; display .snd(p)
+		; displayChar 41		
+		}
+
+define p35 = .pair(3,5)
+.displayPair(p35)
+(3,5,)0
+
+define p76 = .pair(7,6)
+.displayPair(p76)
+(7,6)0
+
+define p10206 = .pair(10,206)
+.displayPair(p10206)
+(10,206)0

@@ -1,0 +1,49 @@
+define pair = proc(x,y) proc(t) if t then y else x
+define fst = proc(p) .p(0)
+define snd = proc(p) .p(1)
+define first = proc(xs) .fst(xs)
+define rest = proc(xs) .snd(xs)
+define list = proc(x, xs) .pair(x, xs)
+define isEmpty = proc(xs) if xs then 0 else 1
+
+define lbrack = 91
+define rbrack = 93
+
+define displayList = proc(xs)
+	{ displayChar lbrack
+	; .displayListAux(xs,0)
+	; displayChar rbrack
+	}
+
+define comma = 44
+
+define displayListAux(procxs, comma?)
+	if xs
+	then
+		if comma?
+		then
+			{ displayChar comma
+			; display .first(xs)
+			; .displayListAux(.rest(xs),1)
+			}
+		else
+			{ display .first(xs)
+			; displayListAux(.rest(xs),1)
+			}		
+	else 0
+
+%%Empty List Test
+define lst = .list(empty, empty)
+displayList(lst) % -> displays [], evaluates to 0
+
+%%List of size 1 Test
+define lst1 = .list(1, empty)
+displayList(lst1) % -> displays [1], evaluates to 0
+
+%%List of size 2 Test
+define lst2 = .list(2, .list(1, empty))
+displayList(lst2) % -> displays [2,1], evaluates to 0
+
+%%List of size 5 Test
+define lst5 = .list(5, .list(4, .list(3, .list(2, .list(1, empty)))))
+dispalyList(lst5) % -> displays [5,4,3,2,1], evaluates to 0

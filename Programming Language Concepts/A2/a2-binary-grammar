@@ -1,0 +1,54 @@
+#Thomas Landi
+# Lexical specification
+NL '\n'
+ONE '1'
+ZERO '0'
+%
+# Grammar, with BitOne subclass for ONE tokens, and BitZero subclass for ZERO tokens
+<start> ::= <bits> NL
+<bits> **= <bit>
+<bit>:BitOne ::= ONE
+<bit>:BitZero ::= ZERO
+%
+
+# Semantics
+Start
+%%%
+	public String toString() {
+		return Integer.toString(bits.eval());
+	}
+%%%
+
+Bits
+%%%
+	public int eval() {
+		int result = 0;
+		if (bitList.size() == 0) {
+			throw new RuntimeException("The provided number had no digits");
+		}
+		for (int i = 0; i < bitList.size(); ++i) {
+			result *= 2;
+			result += bitList.get(i).eval();
+		}
+		return result;
+	}
+%%%
+
+Bit
+%%%
+	public abstract int eval();
+%%%
+
+BitOne
+%%%
+	public int eval() {
+		return 1;
+	}
+%%%
+
+BitZero
+%%%
+	public int eval() {
+		return 0;
+	}
+%%%

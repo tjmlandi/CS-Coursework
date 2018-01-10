@@ -1,0 +1,45 @@
+#Thomas Landi
+#Lexical Specification
+NL '\n'
+DIGIT4 '\d\d\d\d'
+DIGIT2 '\d\d'
+SEP '/|:|-'
+%
+#Grammar
+<ymd> ::= <DIGIT4>yyyy SEP <DIGIT2>mm SEP <DIGIT2>dd NL
+%
+
+#Semantics
+
+Ymd
+%%%
+	public String toString() {
+		int year = Integer.parseInt(yyyy.toString()); 
+		int month = Integer.parseInt(mm.toString());
+		year = (month < 3) ? year - 1 : year;
+		month = (month < 3) ? month + 12 : month;
+		int day = Integer.parseInt(dd.toString());
+		int monthInternal = (int)((26 * (month + 1)) / 10.0);
+		int name = (day + (monthInternal) + year + (int)(year/4.0) + 6*(int)(year/100.0) + (int)(year/400.0)) % 7;
+		String nameString;
+		switch (name) {
+			case 0: nameString = "Saturday";
+				break;
+			case 1: nameString = "Sunday";
+				break;
+			case 2: nameString = "Monday";
+				break;
+			case 3: nameString = "Tuesday";
+				break;
+			case 4: nameString = "Wednesday";
+				break;
+			case 5: nameString = "Thursday";
+				break;
+			case 6: nameString = "Friday";
+				break;
+			default: nameString = "Invalid Day";
+				break;
+		}
+		return nameString;
+	}
+%%%

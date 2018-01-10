@@ -1,0 +1,69 @@
+Ref
+%%%
+import java.util.*;
+
+public abstract class Ref {
+
+    public static List<Ref> valsToRefs(List<Val> valList) {
+        List<Ref> refList = new ArrayList<Ref>();
+        for (Val v : valList)
+            refList.add(new ValRef(v));
+        return refList;
+    }
+
+    public abstract Val deRef();
+    public abstract Val setRef(Val v);
+    public void copyOut() {
+    }
+}
+
+%%%
+
+ValRef
+%%%
+
+public class ValRef extends Ref {
+
+    public Val val;
+
+    public ValRef(Val val) {
+        this.val = val;
+    }
+
+    public Val deRef() {
+        return val;
+    }
+
+    public Val setRef(Val v) {
+        return val = v;
+    }
+
+}
+
+%%%
+
+VarRef
+%%%
+public class VarRef extends Ref {
+	
+	public Val val;
+	public Ref ref;
+
+	public VarRef(Ref ref) {
+		this.val = ref.deRef();
+		this.ref = ref;
+	}
+
+	public Val deRef() {
+		return val;
+	}
+	
+	public Val setRef(Val v) {
+		return val = v;
+	}
+	
+	public void copyOut() {
+		this.ref.setRef(this.deRef());	
+	}
+}
+%%%

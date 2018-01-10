@@ -1,0 +1,142 @@
+Val
+%%%
+import java.util.*;
+
+public abstract class Val {
+
+    public static final IntVal zero = new IntVal(0);
+
+    public static Val [] toArray(List<Val> valList) {
+        int n = valList.size();
+        return valList.toArray(new Val[n]);
+    }
+
+    public Val apply(List<Val> args, Env e) {
+	throw new RuntimeException("Cannot apply " + this);
+    }
+
+    public boolean isTrue() {
+        return true; // any Val is true except for an IntVal of zero
+    }
+
+    public int intVal() {
+        throw new RuntimeException("cannot convert " + this + " to an int");
+    }
+
+    public Env getEnv() {
+	throw new RuntimeException(this + ": no environment");
+    }
+}
+%%%
+
+IntVal
+%%%
+import java.util.*;
+
+public class IntVal extends Val {
+
+    public int val;
+    
+    public IntVal(String s) {
+	val = Integer.parseInt(s);
+    }
+    
+    public IntVal(Val v) {
+	val = v.intVal();
+    }
+    
+    public IntVal(int v) {
+	val = v;
+    }
+
+    public int intVal() {
+        return val;
+    }
+    
+    public boolean isTrue() {
+	return val != 0;
+    }
+    
+    public String toString() {
+	return "" + val;
+    }
+
+    public static void main(String [] args) {
+	Val v = new IntVal(3);
+	Val w = new IntVal(0);
+	System.out.println("v=" + v);
+	System.out.println("w=" + w);
+    }
+    
+}
+%%%
+
+ProcVal
+%%%
+import java.util.*;
+
+public class ProcVal extends Val {
+
+    public Formals formals;
+    public Exp body;
+    public Env env;
+
+    public ProcVal(Formals formals, Exp body, Env env) {
+	this.formals = formals;
+        this.body = body;
+        this.env = env;
+    }
+
+    public Val apply(List<Val> args, Env e) {
+	// bind the formals to the arguments
+        Bindings bindings = new Bindings(formals.varList, args);
+        // extend the captured environment with these bindings
+	Env nenv = env.extendEnv(bindings);
+        // and evaluate the body in this new environment
+        return body.eval(nenv);
+    }
+
+    public String toString() {
+        return "proc(" + formals.toString() + ")";
+    }
+
+    public Env getEnv() {
+	return env;
+    }
+}
+%%%
+
+Formals
+%%%
+	public String toString() {
+		String toReturn = "";
+		for (int i = 0; i < varList.size() - 1; ++i) {
+			toReturn += varList.get(i).toString() + ",";
+		}
+		if (varList.size() > 0) {
+			toReturn += varList.get(varList.size() - 1);
+		}
+		return toReturn;
+	}
+%%%
+
+EnvVal
+%%%
+import java.util.*;
+
+public class EnvVal extends Val {
+	public Env env;
+	
+	public EnvVal(Env env) {
+		this.env = env;
+	}
+	
+	public String toString() {
+		return "env";
+	}
+	
+	public Env getEnv() {
+		return env;
+	}
+}
+%%%

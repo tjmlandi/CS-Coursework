@@ -1,0 +1,12 @@
+define size = proc(xs)
+	if xs
+	then
+		+(1, .size(.rest(xs)))
+	else 0
+
+define append = proc(xs, ys)
+	if .isEmpty(xs)
+	then
+		ys
+	else
+		.list(.first(xs), .append(.rest(xs), ys))

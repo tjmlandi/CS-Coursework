@@ -1,0 +1,48 @@
+Prim
+%%%
+    public abstract Val eval();
+%%%
+
+AddPrim
+%%%
+    public Val eval() {
+	return PrimVal.addPrim;
+    }
+
+    public String toString() {
+	return PrimVal.addPrim.toString();
+    }
+%%%
+
+SubPrim
+%%%
+    public Val eval() {
+	return PrimVal.subPrim;
+    }
+
+    public String toString() {
+	return PrimVal.subPrim.toString();
+    }
+%%%
+
+MulPrim
+%%%
+    public Val eval() {
+	return PrimVal.mulPrim;
+    }
+
+    public String toString() {
+	return PrimVal.addPrim.toString();
+    }
+%%%
+
+DivPrim
+%%%
+    public Val eval() {
+	return PrimVal.divPrim;
+    }
+
+    public String toString() {
+	return PrimVal.divPrim.toString();
+    }
+%%%

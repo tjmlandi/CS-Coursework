@@ -1,0 +1,190 @@
+CSCI 344 - Programming Language Concepts
+Assignment A7 (40 points)
+Friday, April 7, 2017
+
+Answer each of the questions indicated by a '##QUESTION:' line
+by entering your corresponding answer in the space following each
+'##ANSWER:' line.
+
+This file can be found here:
+
+  ~tvf/CSCI344/Assignments/A7/a7
+
+See the Submission Requirements at the end of this document.
+
+##QUESTION:
+1.  (5 pts)
+    Consider the following program fragment in the C language that
+    determines the sum of the squares of the first ten positive integers:
+
+        int sum = 0;
+        for (int i=10 ; i>0 ; i--)
+            sum += *(i,i);
+
+    In general, a C language 'for' statement has the following structure:
+
+        for (init ; test ; incr)
+            body
+
+    The semantics of this statement is:
+
+        a.  Execute the 'init' code.
+        b.  Evaluate the 'test' expression. If this expression evaluates
+            to true, execute the 'body', then execute the 'incr' expression,
+            and repeat this step. Otherwise, return.
+
+    You are to create a 'for' procedure in the NAME language that has
+    the following format:
+
+        define for = proc(test, body, incr, ans)
+            %% procedure code goes here %%
+
+    There is no 'init' code, since we will assume that all variables and
+    such have been initialized before the 'for' procedure is applied.
+    The semantics of the 'for' procedure is identical to step (b) above,
+    except that if the 'test' expression evaluates to false, the 'ans'
+    expression is evaluated, and this value becomes the value returned by
+    the 'for' expression. (Remember that every expression in the NAME
+    language must evaluate to something.)
+
+    For example, given the procedure definition of 'for', the following
+    expression returns the sum of the squares of the first ten positive
+    integers:
+
+    let
+      sum = 0
+      i = 10
+    in
+      .for(i, set sum=+(sum,*(i,i)), set i=sub1(i), sum)
+
+    In the ANSWER section below, complete the definition of 'for'.
+    Hint: use the idea shown in class notes for defining a 'while'
+    procedure. Check your answer by evaluating the above example
+    expression and other expressions of your choosing.
+
+##ANSWER
+
+    define for = proc(test, body, incr, ans)
+      letrec
+	loop = proc()
+	if test then
+	  {body
+	  ;incr
+	  ;.loop()}
+	else
+	  ans
+      in
+	.loop()
+	
+
+##QUESTION
+1a. (5 pts)
+    Will the same definition work in the NEED language? Why or why not?
+    Explain your answer below.
+
+##ANSWER
+This will not work in the NEED language, as the incr parameter would have no longer 
+referenced the operation to be performed on i after the first iteration, instead
+it would just evaluate to 9.
+    
+##QUESTION:
+2.  (5 pts)
+    Consider the following definition of 'compose', which takes
+    two functions, each taking one integer argument and returning an
+    integer result, and returns the composition of these functions:
+
+        define compose = proc(f,g) proc(x) .f(.g(x))
+        define inc = proc(x) add1(x)
+        define sqr = proc(x) *(x,x)
+
+        ..compose(inc,sqr)(5) % => 26
+        ..compose(sqr,inc)(5) % => 36
+        ..compose(inc,inc)(5) % => 7
+        ..compose(sqr,sqr)(5) % => 625
+        ..compose(sqr,.compose(inc,inc))(5) % => 49
+
+    Add type annotations to the three 'define's above so that they will
+    pass the TYPE1 language type checker.  Complete your answer below.
+
+##ANSWER:
+
+        define compose = proc(f:[int=>int],g:[int=>int]):[int=>int] proc(x:int):int .f(.g(x))
+        define inc = proc(x:int):int add1(x)
+        define sqr = proc(x:int):int *(x,x)
+
+##QUESTION:
+3.  (5 pts)
+    What is the type of the following expression?
+
+        let
+          p = proc(f:[int=>int]):[int=>int] proc(x:int):int .f(.f(x))
+          q = proc(t:int):int *(t,t)
+        in
+          .p(q)
+
+##ANSWER
+Proc type, [int=>int]
+
+##QUESTION:
+4.  (5 pts)
+    Show how you can modify the above expression by ADDING just four
+    printable characters so that the resulting expression evaluates
+    to 2401. Your answer should include the entire expression above,
+    along with your four additional characters.
+
+##ANSWER
+let
+  p = proc(f:[int=>int]):[int=>int] proc(x:int):int .f(.f(x))
+  q = proc(t:int):int *(t,t)
+in
+  ..p(q)(7)
+
+##QUESTION
+5.  (5 pts)
+    In the TYPE1 language, does the expression
+
+        if add1(0) then +(4,5) else .let p=proc():int 9 in p()
+
+    have any syntax or type errors?  If so, identify the errors (but don't
+    try to correct them).  If not, give the value of the expression.
+
+##ANSWER
+It does have a type error, add1(0) returns an int, but the if statement expects a bool.
+
+##QUESTION
+6.  (5 pts)
+    What is the problem with the following top-level definition
+    of the fibonacci function in the TYPE1 language:
+
+        define fib = proc(n:int):int
+          if =?(n,0)
+          then 0
+          else
+            if =?(n,1)
+            then 1
+            else +(.fib(-(n,2)), .fib(-(n,1)))
+
+##ANSWER
+The type is never declared for fib, so it will error upon reaching the recursive call
+as there is no type binding for fib.
+
+##QUESTION
+7.  (5 pts)
+    Show how you can correct the problem described in question 6 without
+    making any changes to the definition of fib.
+
+##ANSWER
+declare fib : [int=>int]
+define fib = proc(n:int):int
+...
+
+Submission Requirements
+=======================
+Modify this file (a7) by filling in the ##ANSWER sections with your
+solutions to the questions given in the corresponding ##QUESTION sections.
+Do not make any other changes to this file, including its name.
+
+Create a zip file A7.zip containing ONLY your edited a7 file. Your zip
+file should NOT contain any other files or directories. Submit your
+A7.zip file into your A7 dropbox in MyCourses.
+

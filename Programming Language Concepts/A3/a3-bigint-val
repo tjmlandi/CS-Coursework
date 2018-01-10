@@ -1,0 +1,129 @@
+Val
+%%%
+import java.util.*;
+
+public abstract class Val {
+
+    public static Val [] toArray(List<Val> valList) {
+        int n = valList.size();
+        return valList.toArray(new Val[n]);
+    }
+
+    public Val apply(List<Val> args, Env e) {
+	throw new RuntimeException("Cannot apply " + this);
+    }
+
+    public boolean isTrue() {
+        return true; // any Val is true except for an IntVal of zero
+    }
+}
+%%%
+
+IntVal
+%%%
+import java.util.*;
+import java.math.*;
+
+public class IntVal extends Val {
+
+    public BigInteger val;
+    
+    public IntVal(String s) {
+	val = new BigInteger(s);
+    }
+
+    public IntVal(IntVal v) {
+	val = v.val;
+    }
+
+    public IntVal(BigInteger v) {
+	val = v;
+    }
+
+    public IntVal(int v) {
+	val = BigInteger.valueOf(v);
+    }
+
+    public IntVal add(IntVal v) {
+	return new IntVal(val.add(v.val));
+    }
+
+    public IntVal add1() {
+	return new IntVal(val.add(BigInteger.ONE));
+    }
+
+    public IntVal subtract(IntVal v) {
+	return new IntVal(val.subtract(v.val));
+    }    
+
+    public IntVal sub1() {
+	return new IntVal(val.subtract(BigInteger.ONE));
+    }
+
+    public IntVal multiply(IntVal v) {
+	return new IntVal(val.multiply(v.val));
+    }
+	
+    public IntVal divide(IntVal v) {
+	return new IntVal(val.divide(v.val));
+    }
+
+    public IntVal zerop() {
+	if (val.signum() == 0) {
+	    return new IntVal(BigInteger.ZERO);
+	}
+	return new IntVal(BigInteger.ONE);
+    }
+
+    public boolean isTrue() {
+	if (val.signum() != 0) {
+	    return true;
+	}
+	return false;
+    }
+    
+    public String toString() {
+	return "" + val;
+    }
+
+    public static void main(String [] args) {
+	Val v = new IntVal(3);
+	Val w = new IntVal(0);
+	System.out.println("v=" + v);
+	System.out.println("w=" + w);
+    }
+    
+}
+%%%
+
+ProcVal
+%%%
+import java.util.*;
+
+public class ProcVal extends Val {
+
+    public Formals formals;
+    public Exp body;
+    public Env env;
+
+    public ProcVal(Formals formals, Exp body, Env env) {
+	this.formals = formals;
+        this.body = body;
+        this.env = env;
+    }
+
+    public Val apply(List<Val> args, Env e) {
+	// bind the formals to the arguments
+        Bindings bindings = new Bindings(formals.varList, args);
+        // extend the captured environment with these bindings
+	Env nenv = env.extendEnv(bindings);
+        // and evaluate the body in this new environment
+        return body.eval(nenv);
+    }
+
+    public String toString() {
+        return "proc";
+    }
+}
+
+%%%
